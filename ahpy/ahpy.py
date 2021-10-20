@@ -314,13 +314,27 @@ class Compare:
         # The absolute value avoids confusion in those rare cases where a small negative float is rounded to -0.0
         self.consistency_ratio = np.abs(np.real(consistency_index / random_index).round(self.precision))
 
-    def add_children(self, children):
+    def add_children(self, children, vertex_name=None):
         """
         Sets the input Compare objects as children of the current Compare object, assigns itself as their parent,
         then updates the global and target weights of the new hierarchy.
         NB: A child Compare object's name MUST be included as an element of the current Compare object.
         :param children: list or tuple, Compare objects to form the children of the current Compare object
         """
+
+        if vertex_name is not None:
+            if self.name == vertex_name:
+                self.add_children(children)
+                return
+
+            if self._node_children is None:
+                return
+
+            for c in self._node_children:
+                c.add_children(children, vertex_name)
+
+            return
+
         self._node_children = children
         self._check_children()
         for child in self._node_children:
