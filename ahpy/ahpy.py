@@ -43,7 +43,6 @@ class Compare:
         self.tolerance = tolerance
         self.cr = cr
 
-        self._normalize = not isinstance(next(iter(self.comparisons)), tuple)
         self._elements = []
         self._pairs = []
         self._size = None
@@ -62,7 +61,18 @@ class Compare:
         self.local_weights = None
         self.target_weights = None
 
+        self.update_weights(comparisons)
+
+        self.target_weights = self._node_weights if self.global_weight == 1.0 else None
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+    def update_weights(self, comparisons):
+        self.comparisons = comparisons
+        self._normalize = not isinstance(next(iter(self.comparisons)), tuple)
         self._check_input()
+
         if self._normalize:
             self._build_normalized_elements()
             self._check_size()
@@ -72,15 +82,17 @@ class Compare:
             self._check_size()
             self._insert_comparisons()
             self._build_matrix()
+
         self._get_missing_comparisons()
+
         if self._missing_comparisons:
             self._complete_matrix()
+
         self._compute()
 
-        self.target_weights = self._node_weights if self.global_weight == 1.0 else None
+        if self._node_children is not None:
+            self._recompute()
 
-    def __getitem__(self, item):
-        return getattr(self, item)
 
     def _check_input(self):
         """
