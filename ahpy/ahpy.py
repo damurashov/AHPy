@@ -68,7 +68,20 @@ class Compare:
     def __getitem__(self, item):
         return getattr(self, item)
 
-    def update_weights(self, comparisons):
+    def update_weights(self, comparisons, vertex_name=None):
+
+        if vertex_name is not None:
+            if self.name == vertex_name:
+                self.update_weights(comparisons)
+
+            if self._node_children is None:
+                return
+
+            for c in self._node_children:
+                c.update_weights(comparisons, vertex_name)
+
+            return
+
         self.comparisons = comparisons
         self._normalize = not isinstance(next(iter(self.comparisons)), tuple)
         self._check_input()
@@ -92,7 +105,6 @@ class Compare:
 
         if self._node_children is not None:
             self._recompute()
-
 
     def _check_input(self):
         """
