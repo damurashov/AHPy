@@ -10,6 +10,33 @@ import scipy.optimize as spo
 import ahpy
 
 
+def to_pairwise(*args):
+    """
+    From plain non-normalized weight vectors to pairwise comparisons
+    :param args: ["a","b", "c"], [33, 44, 66]  OR  {"a": 33, "b": 44, "c": 66}
+    :return: {("a", "b"): a / b, ("a","c"): a / c, ("b","c"): b / c}
+    """
+    if len(args) == 2:
+        alternatives = list(args[0])
+        weights = list(args[1])
+    elif len(args) == 1 and type(args[0]) is dict:
+        alternatives = list(args[0].keys())
+        weights = list(args[0].values())
+    else:
+        assert False
+
+    n_alt = len(alternatives)
+    assert n_alt == len(weights)
+
+    ret = dict()
+
+    for i in range(0, n_alt):
+        for j in range(i + 1, n_alt):
+            ret[(alternatives[i], alternatives[j],)] = weights[i] / weights[j]
+
+    return ret
+
+
 class Compare:
     """
     This class computes the priority vector and consistency ratio of a positive reciprocal matrix, created using
