@@ -37,6 +37,82 @@ def to_pairwise(*args):
     return ret
 
 
+class Graph:
+    """
+    Alternative implementation which, however, uses a part of ahpy.Compare
+    """
+
+    def __init__(self, root_name):
+        self.graph = dict()
+        self.root = root_name
+
+    def set_weights(self, context, pairwise):
+        """
+        Used for both update
+        :param context: name of the vertex which the weights will be attached to
+        :param pairwise: {("a","b"): a pref. over b, ("b","c"): b pref. over c, ...}
+        """
+        if context in self.graph.keys():
+            self.graph[context].update(pairwise)
+        else:
+            self.graph[context] = pairwise
+
+    def get_children_of(self, node_name) -> set:
+        """
+        :return: Names of the vertex's children
+        """
+        if node_name in self.graph:
+            return set(reduce(lambda a, b: a + b, self.graph[node_name].keys(), ()))
+        else:
+            return []
+
+    def __str__(self):
+        print(self.graph)
+
+    def _get_weights(self, context, assessed: dict = dict()) -> dict:
+        """
+        Recursive call for "convolving" the alternatives up to the given context
+        :param context: name of the vertex
+        :param assessed: The nodes in the context of which the leaves have been assessed by the moment.
+        Format: {context1: {alt1: weight, alt2: weight}, context2: {...}}
+        :return: dict of assessed vertices (extended).
+        """
+
+        def __trace(s):
+            pass
+
+        __trace('--->> ' + context)
+        children = self.get_children_of(context)
+        __trace("children: " + str(children))
+
+        if not children:
+            __trace('<<--- ' + context)
+            return assessed
+
+        for child in children:
+            if not (child in assessed.keys()):
+                assessed = self._get_weights(child, assessed)
+
+        compare = ahpy.Compare(context, self.graph[context])
+        lower_contexts = [ahpy.Compare(child, ahpy.to_pairwise(assessed[child])) for child in children if child in assessed.keys()]
+
+        __trace("lower contexts: " + str(lower_contexts))
+
+        if lower_contexts:
+            compare.add_children(lower_contexts)
+
+        assessed[context] = compare.target_weights
+
+        __trace('<<---' + context)
+        return assessed
+
+    def get_weights(self):
+        """
+        :return: Returns weighted alternatives in the form {"a1": weight_a1, "a2": weight_a2,...}
+        """
+        return self._get_weights(self.root)[self.root]
+
+
 class Compare:
     """
     This class computes the priority vector and consistency ratio of a positive reciprocal matrix, created using
