@@ -9,6 +9,8 @@ import scipy.optimize as spo
 
 import ahpy
 
+from functools import reduce
+
 
 def to_pairwise(*args):
     """
@@ -39,7 +41,7 @@ def to_pairwise(*args):
 
 class Graph:
     """
-    Alternative implementation which, however, uses a part of ahpy.Compare
+    Alternative implementation which, however, uses a part of Compare
     """
 
     def __init__(self, root_name):
@@ -93,8 +95,8 @@ class Graph:
             if not (child in assessed.keys()):
                 assessed = self._get_weights(child, assessed)
 
-        compare = ahpy.Compare(context, self.graph[context])
-        lower_contexts = [ahpy.Compare(child, ahpy.to_pairwise(assessed[child])) for child in children if child in assessed.keys()]
+        compare = Compare(context, self.graph[context])
+        lower_contexts = [Compare(child, to_pairwise(assessed[child])) for child in children if child in assessed.keys()]
 
         __trace("lower contexts: " + str(lower_contexts))
 
@@ -701,19 +703,19 @@ class Compose:
              of coordinates is less than this value; default is 0.0001
         :param cr: boolean, whether to compute the priority vector's consistency ratio; default is True
         """
-        if isinstance(item, ahpy.Compare):
+        if isinstance(item, Compare):
             self.nodes.append(item)
         elif isinstance(item, (list, tuple)):
             for i in item:
-                if isinstance(i, ahpy.Compare):
+                if isinstance(i, Compare):
                     self.nodes.append(i)
                 elif isinstance(i, str):
-                    self.nodes.append(ahpy.Compare(*item))
+                    self.nodes.append(Compare(*item))
                     break
                 else:
-                    self.nodes.append(ahpy.Compare(*i))
+                    self.nodes.append(Compare(*i))
         else:  # item is a Compare object name
-            self.nodes.append(ahpy.Compare(item, comparisons, precision, random_index, iterations, tolerance, cr))
+            self.nodes.append(Compare(item, comparisons, precision, random_index, iterations, tolerance, cr))
 
     def add_hierarchy(self, hierarchy):
         """
