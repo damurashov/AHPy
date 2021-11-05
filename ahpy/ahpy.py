@@ -112,7 +112,7 @@ class Graph:
         """
         :return: Returns weighted alternatives in the form {"a1": weight_a1, "a2": weight_a2,...}
         """
-        return self._get_weights(self.root)[self.root]
+        return self._get_weights(self.root, dict())[self.root]
 
 
 class Compare:
